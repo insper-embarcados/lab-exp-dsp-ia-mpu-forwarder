@@ -2,9 +2,13 @@ cmake_minimum_required(VERSION 3.13.1)
 
 set(PROJECT_FOLDER .)
 
+# Pull in FreeRTOS
+set(FREERTOS_KERNEL_PATH ${CMAKE_CURRENT_LIST_DIR}/freertos/FreeRTOS-Kernel)
+include(freertos/FreeRTOS_Kernel_import.cmake)
+
 include(pico_sdk_import.cmake)
 
-project(app C CXX ASM)
+project(pico-freertos C CXX ASM)
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_CXX_STANDARD 11)
 
@@ -15,23 +19,28 @@ add_definitions(-DEIDSP_QUANTIZE_FILTERBANK=0
                 -DARM_MATH_LOOPUNROLL
                 )
 
-add_executable(app
-  source/main.cpp
+add_executable(pico-freertos
+  main/main.cpp
   )
 
 include(${PROJECT_FOLDER}/edge-impulse-sdk/cmake/utils.cmake)
 
-target_link_libraries(app pico_stdlib)
+target_link_libraries(pico-freertos PRIVATE 
+    pico_stdlib 
+    FreeRTOS-Kernel 
+    FreeRTOS-Kernel-Heap4
+    )
 
-target_include_directories(app PRIVATE
+target_include_directories(pico-freertos PRIVATE
     ${PROJECT_FOLDER}/tflite-model
     ${PROJECT_FOLDER}/model-parameters
+    ${PROJECT_FOLDER}/freertos
     ${PROJECT_FOLDER}
 )
 
 # enable usb output, disable uart output
-pico_enable_stdio_usb(app 1)
-pico_enable_stdio_uart(app 0)
+pico_enable_stdio_usb(pico-freertos 1)
+pico_enable_stdio_uart(pico-freertos 0)
 
 RECURSIVE_FIND_FILE(SOURCE_FILES "${PROJECT_FOLDER}/edge-impulse-sdk" "*.cpp")
 RECURSIVE_FIND_FILE(MODEL_FILES "${PROJECT_FOLDER}/tflite-model" "*.cpp")
@@ -44,6 +53,8 @@ list(APPEND SOURCE_FILES ${CC_FILES})
 list(APPEND SOURCE_FILES ${MODEL_FILES})
 
 # add all sources to the project
-target_sources(app PRIVATE ${SOURCE_FILES})
+target_sources(pico-freertos PRIVATE ${SOURCE_FILES})
 
-pico_add_extra_outputs(app)
+target_compile_options(pico-freertos PRIVATE -Wall)
+
+pico_add_extra_outputs(pico-freertos)
