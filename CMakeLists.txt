@@ -2,13 +2,17 @@ cmake_minimum_required(VERSION 3.13.1)
 
 set(PROJECT_FOLDER .)
 
+include(pico_sdk_import.cmake)
+
+
 # Pull in FreeRTOS
 set(FREERTOS_KERNEL_PATH ${CMAKE_CURRENT_LIST_DIR}/freertos/FreeRTOS-Kernel)
 include(freertos/FreeRTOS_Kernel_import.cmake)
 
-include(pico_sdk_import.cmake)
 
-project(pico-freertos C CXX ASM)
+
+
+project(pico-edge C CXX ASM)
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_CXX_STANDARD 11)
 
@@ -19,19 +23,25 @@ add_definitions(-DEIDSP_QUANTIZE_FILTERBANK=0
                 -DARM_MATH_LOOPUNROLL
                 )
 
-add_executable(pico-freertos
-  main/main.cpp
-  )
+add_subdirectory(Fusion)
+
+
+add_executable(pico-edge 
+              source/main.cpp
+              edge-impulse-sdk/porting/ei_classifier_porting.h
+)
 
 include(${PROJECT_FOLDER}/edge-impulse-sdk/cmake/utils.cmake)
 
-target_link_libraries(pico-freertos PRIVATE 
+target_link_libraries(pico-edge PRIVATE 
     pico_stdlib 
     FreeRTOS-Kernel 
     FreeRTOS-Kernel-Heap4
+    hardware_i2c
+    Fusion
     )
 
-target_include_directories(pico-freertos PRIVATE
+target_include_directories(pico-edge PRIVATE
     ${PROJECT_FOLDER}/tflite-model
     ${PROJECT_FOLDER}/model-parameters
     ${PROJECT_FOLDER}/freertos
@@ -39,8 +49,8 @@ target_include_directories(pico-freertos PRIVATE
 )
 
 # enable usb output, disable uart output
-pico_enable_stdio_usb(pico-freertos 1)
-pico_enable_stdio_uart(pico-freertos 0)
+pico_enable_stdio_usb(pico-edge 1)
+pico_enable_stdio_uart(pico-edge 0)
 
 RECURSIVE_FIND_FILE(SOURCE_FILES "${PROJECT_FOLDER}/edge-impulse-sdk" "*.cpp")
 RECURSIVE_FIND_FILE(MODEL_FILES "${PROJECT_FOLDER}/tflite-model" "*.cpp")
@@ -53,8 +63,8 @@ list(APPEND SOURCE_FILES ${CC_FILES})
 list(APPEND SOURCE_FILES ${MODEL_FILES})
 
 # add all sources to the project
-target_sources(pico-freertos PRIVATE ${SOURCE_FILES})
+target_sources(pico-edge PRIVATE ${SOURCE_FILES})
 
-target_compile_options(pico-freertos PRIVATE -Wall)
+target_compile_options(pico-edge PRIVATE -Wall)
 
-pico_add_extra_outputs(pico-freertos)
+pico_add_extra_outputs(pico-edge)
