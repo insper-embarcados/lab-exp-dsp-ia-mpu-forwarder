@@ -18,13 +18,12 @@
 #include <Fusion.h>
 
 
-const uint LED_PIN = 25;
 
 // definindo necessário pra MPU - I2C
 static bool debug_nn = false;
 const int MPU_ADDRESS = 0x68;
-const int I2C_SDA_GPIO = 20;
-const int I2C_SCL_GPIO = 21;
+const int I2C_SDA_GPIO = 4;
+const int I2C_SCL_GPIO = 5;
 
 
 #pragma region MPU-I2C-config
