@@ -163,17 +163,15 @@ static void gesture_recognize_task(void *p)
         result.timing.dsp, result.timing.classification, result.timing.anomaly);
     ei_printf(": \n");
     
-    if (result.classification[0].value > ( result.classification[1].value || result.classification[2].value)){
+    if (result.classification[0].value > result.classification[1].value && result.classification[0].value > result.classification[2].value) {
         gpio_put(15, 1);
         gpio_put(16, 0);
         gpio_put(17, 0);
-    }
-    if (result.classification[1].value > (result.classification[0].value || result.classification[2].value)){
+    } else if (result.classification[1].value > result.classification[0].value && result.classification[1].value > result.classification[2].value) {
         gpio_put(15, 0);
         gpio_put(16, 1);
         gpio_put(17, 0);
-    }
-    if (result.classification[2].value > (result.classification[0].value || result.classification[1].value)){
+    } else if (result.classification[2].value > result.classification[0].value && result.classification[2].value > result.classification[1].value) {
         gpio_put(15, 0);
         gpio_put(16, 0);
         gpio_put(17, 1);
