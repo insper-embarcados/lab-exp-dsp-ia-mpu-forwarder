@@ -12,7 +12,7 @@ include(freertos/FreeRTOS_Kernel_import.cmake)
 
 
 
-project(pico-edge C CXX ASM)
+project(lab-ia C CXX ASM)
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_CXX_STANDARD 11)
 
@@ -24,10 +24,11 @@ add_definitions(-DEIDSP_QUANTIZE_FILTERBANK=0
                 )
 
 add_subdirectory(Fusion)
+add_subdirectory(mpu-data-forwarding)
 
 
 add_executable(pico-edge 
-              source/main.cpp
+              pico-edge/main.cpp
               edge-impulse-sdk/porting/ei_classifier_porting.h
 )
 
@@ -41,6 +42,13 @@ target_link_libraries(pico-edge PRIVATE
     Fusion
     )
 
+
+target_include_directories(mpu-data-forwarding PRIVATE
+    ${PROJECT_FOLDER}/freertos
+    ${PROJECT_FOLDER}
+)
+
+
 target_include_directories(pico-edge PRIVATE
     ${PROJECT_FOLDER}/tflite-model
     ${PROJECT_FOLDER}/model-parameters
@@ -48,9 +56,13 @@ target_include_directories(pico-edge PRIVATE
     ${PROJECT_FOLDER}
 )
 
+
+
 # enable usb output, disable uart output
-pico_enable_stdio_usb(pico-edge 1)
-pico_enable_stdio_uart(pico-edge 0)
+pico_enable_stdio_usb(pico-edge 0)
+pico_enable_stdio_uart(pico-edge 1)
+pico_enable_stdio_usb(mpu-data-forwarding 0)
+pico_enable_stdio_uart(mpu-data-forwarding 1)
 
 RECURSIVE_FIND_FILE(SOURCE_FILES "${PROJECT_FOLDER}/edge-impulse-sdk" "*.cpp")
 RECURSIVE_FIND_FILE(MODEL_FILES "${PROJECT_FOLDER}/tflite-model" "*.cpp")
@@ -64,7 +76,11 @@ list(APPEND SOURCE_FILES ${MODEL_FILES})
 
 # add all sources to the project
 target_sources(pico-edge PRIVATE ${SOURCE_FILES})
+target_sources(mpu-data-forwarding PRIVATE ${SOURCE_FILES})
+
 
 target_compile_options(pico-edge PRIVATE -Wall)
 
-pico_add_extra_outputs(pico-edge)
+
+
+
