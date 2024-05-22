@@ -27,7 +27,6 @@ const int I2C_SDA_GPIO = 4;
 const int I2C_SCL_GPIO = 5;
 
 
-#pragma region MPU-I2C-config
 static void mpu6050_reset() {
     // Two byte reset. First byte register, second byte data
     // There are a load more options to set up the device in different ways that could be added here
@@ -71,13 +70,11 @@ static void mpu6050_read_raw(int16_t accel[3], int16_t gyro[3], int16_t *temp) {
 }
 
 
-#pragma endregion MPU-I2C-config
 
 static const float features[] = {
     // Copy raw features here (e.g. from the 'Model testing' page)
 };
 
-#pragma region main-GESTURE-config
 static void gesture_recognize_task(void *p)
 {
     gpio_init(15);
@@ -113,7 +110,7 @@ static void gesture_recognize_task(void *p)
     
     {
         ei_printf("\nStarting inferencing in 2 seconds...\n");
-        sleep_ms(2000);
+        vTaskDelay(pdMS_TO_TICKS(2000));
         ei_printf("Sampling...\n");
 
     // Allocate a buffer here for the values we'll read from the IMU
@@ -179,7 +176,6 @@ static void gesture_recognize_task(void *p)
     vTaskDelay(pdMS_TO_TICKS(10));
 }
 
-#pragma endregion main-GESTURE-config
 
 
 int raw_feature_get_data(size_t offset, size_t length, float *out_ptr) {
